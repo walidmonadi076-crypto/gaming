@@ -1,131 +1,98 @@
-const { Pool } = require('pg');
+import { getPool } from "../lib/db.js";
+import { GAMES_DATA } from "../data/games.js";
+import { BLOGS_DATA, COMMENTS_DATA } from "../data/blogs.js";
+import { PRODUCTS_DATA } from "../data/products.js";
 
-const GAMES_DATA = require('../data/games').GAMES_DATA;
-const { BLOGS_DATA, COMMENTS_DATA } = require('../data/blogs');
-const PRODUCTS_DATA = require('../data/products').PRODUCTS_DATA;
+async function migrateData() {
+const pool = getPool();
 
-async function migrate() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
+try {
+console.log("🚀 Starting data migration...");
 
-  try {
-    console.log('Starting migration...');
-    
-    await pool.query("DELETE FROM comments");
-    await pool.query("DELETE FROM blog_posts");
-    await pool.query("DELETE FROM games");
-    await pool.query("DELETE FROM products");
-    console.log('Cleared existing data');
+```
+// 🕹️ Insert Games
+for (const game of GAMES_DATA) {
+  await pool.query(
+    `INSERT INTO games (title, image_url, category, tags, theme, description, video_url, download_url, gallery)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+     ON CONFLICT (id) DO NOTHING`,
+    [
+      game.title,
+      game.imageUrl,
+      game.category,
+      game.tags || [],
+      game.theme,
+      game.description,
+      game.videoUrl || null,
+      game.downloadUrl || null,
+      game.gallery || [],
+    ]
+  );
+}
+console.log(`✅ Inserted ${GAMES_DATA.length} games`);
 
-    for (const game of GAMES_DATA) {
+// 📰 Insert Blogs
+for (const blog of BLOGS_DATA) {
+  await pool.query(
+    `INSERT INTO blog_posts (title, summary, image_url, video_url, author, publish_date, rating, affiliate_url, content, category)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     ON CONFLICT (id) DO NOTHING`,
+    [
+      blog.title,
+      blog.summary,
+      blog.imageUrl,
+      blog.videoUrl || null,
+      blog.author,
+      blog.publishDate,
+      blog.rating,
+      blog.affiliateUrl,
+      blog.content,
+      blog.category,
+    ]
+  );
+
+  // 📋 Insert Comments for each blog (if exist)
+  const comments = COMMENTS_DATA[blog.id];
+  if (comments) {
+    for (const c of comments) {
       await pool.query(
-        `INSERT INTO games (id, title, image_url, category, tags, theme, description, video_url, download_url, gallery) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-        [
-          game.id,
-          game.title,
-          game.imageUrl,
-          game.category,
-          game.tags || [],
-          game.theme || null,
-          game.description,
-          game.videoUrl || null,
-          game.downloadUrl,
-          game.gallery,
-        ]
+        `INSERT INTO comments (blog_id, author, avatar_url, date, text)
+         VALUES ((SELECT id FROM blog_posts WHERE title = $1 LIMIT 1), $2,$3,$4,$5)
+         ON CONFLICT (id) DO NOTHING`,
+        [blog.title, c.author, c.avatarUrl, c.date, c.text]
       );
     }
-    console.log(`Migrated ${GAMES_DATA.length} games`);
-
-    for (const blog of BLOGS_DATA) {
-      await pool.query(
-        `INSERT INTO blog_posts (id, title, summary, image_url, video_url, author, publish_date, rating, affiliate_url, content, category) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [
-          blog.id,
-          blog.title,
-          blog.summary,
-          blog.imageUrl,
-          blog.videoUrl || null,
-          blog.author,
-          blog.publishDate,
-          blog.rating,
-          blog.affiliateUrl,
-          blog.content,
-          blog.category,
-        ]
-      );
-    }
-    console.log(`Migrated ${BLOGS_DATA.length} blog posts`);
-
-    for (const product of PRODUCTS_DATA) {
-      const price = typeof product.price === 'string' 
-        ? parseFloat(product.price.replace(/[^0-9.]/g, ''))
-        : product.price;
-      
-      await pool.query(
-        `INSERT INTO products (id, name, image_url, price, url, description, gallery, category) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [
-          product.id,
-          product.name,
-          product.imageUrl,
-          price,
-          product.url,
-          product.description,
-          product.gallery,
-          product.category,
-        ]
-      );
-    }
-    console.log(`Migrated ${PRODUCTS_DATA.length} products`);
-
-    for (const [blogId, comments] of Object.entries(COMMENTS_DATA)) {
-      for (const comment of comments) {
-        let commentDate = comment.date;
-        if (typeof commentDate === 'string') {
-          const daysAgoMatch = commentDate.match(/(\d+) days? ago/);
-          if (daysAgoMatch) {
-            const daysAgo = parseInt(daysAgoMatch[1]);
-            const date = new Date();
-            date.setDate(date.getDate() - daysAgo);
-            commentDate = date.toISOString().split('T')[0];
-          } else {
-            commentDate = new Date().toISOString().split('T')[0];
-          }
-        }
-        
-        await pool.query(
-          `INSERT INTO comments (id, blog_post_id, author, avatar_url, date, text) 
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            comment.id,
-            parseInt(blogId),
-            comment.author,
-            comment.avatarUrl,
-            commentDate,
-            comment.text,
-          ]
-        );
-      }
-    }
-    console.log(`Migrated comments`);
-
-    await pool.query(`SELECT setval('games_id_seq', (SELECT MAX(id) FROM games))`);
-    await pool.query(`SELECT setval('blog_posts_id_seq', (SELECT MAX(id) FROM blog_posts))`);
-    await pool.query(`SELECT setval('products_id_seq', (SELECT MAX(id) FROM products))`);
-    await pool.query(`SELECT setval('comments_id_seq', (SELECT MAX(id) FROM comments))`);
-    console.log('Reset sequences');
-
-    console.log('Migration completed successfully!');
-  } catch (error) {
-    console.error('Migration error:', error);
-    process.exit(1);
-  } finally {
-    await pool.end();
   }
 }
+console.log(`✅ Inserted ${BLOGS_DATA.length} blogs + comments`);
 
-migrate();
+// 🛍️ Insert Products
+for (const p of PRODUCTS_DATA) {
+  await pool.query(
+    `INSERT INTO products (name, image_url, price, url, description, gallery, category)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)
+     ON CONFLICT (id) DO NOTHING`,
+    [
+      p.name,
+      p.imageUrl,
+      p.price,
+      p.url,
+      p.description,
+      p.gallery || [],
+      p.category,
+    ]
+  );
+}
+console.log(`✅ Inserted ${PRODUCTS_DATA.length} products`);
+
+console.log("🎉 Data migration completed successfully!");
+```
+
+} catch (err) {
+console.error("❌ Error during migration:", err);
+} finally {
+await pool.end();
+}
+}
+
+migrateData();
