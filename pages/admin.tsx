@@ -229,19 +229,6 @@ export default function AdminPanel() {
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold capitalize">{activeTab}</h2>
-            <button
-              onClick={() => {
-                setEditingItem(null);
-                setShowForm(true);
-              }}
-              className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold"
-            >
-              + Ajouter
-            </button>
-          </div>
-
           {loading ? (
             <div className="text-center py-10">Chargement...</div>
           ) : (
@@ -259,75 +246,92 @@ export default function AdminPanel() {
                   </thead>
                   <tbody>
                     {activeTab === 'games' && paginate(games, currentPage, itemsPerPage).items.map((game) => (
-                    <tr key={game.id} className="border-b border-gray-700 hover:bg-gray-750">
-                      <td className="p-3">{game.id}</td>
-                      <td className="p-3">{game.title}</td>
-                      <td className="p-3">{game.category}</td>
-                      <td className="p-3"><Image src={game.imageUrl} alt={game.title} width={64} height={64} className="object-cover rounded" /></td>
-                      <td className="p-3 text-right">
-                        <button onClick={() => { setEditingItem(game); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
-                        <button onClick={() => handleDelete(game.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {activeTab === 'blogs' && paginate(blogs, currentPage, itemsPerPage).items.map((blog) => (
-                    <tr key={blog.id} className="border-b border-gray-700 hover:bg-gray-750">
-                      <td className="p-3">{blog.id}</td>
-                      <td className="p-3">{blog.title}</td>
-                      <td className="p-3">{blog.category}</td>
-                      <td className="p-3"><Image src={blog.imageUrl} alt={blog.title} width={64} height={64} className="object-cover rounded" /></td>
-                      <td className="p-3 text-right">
-                        <button onClick={() => { setEditingItem(blog); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
-                        <button onClick={() => handleDelete(blog.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {activeTab === 'products' && paginate(products, currentPage, itemsPerPage).items.map((product) => (
-                    <tr key={product.id} className="border-b border-gray-700 hover:bg-gray-750">
-                      <td className="p-3">{product.id}</td>
-                      <td className="p-3">{product.name}</td>
-                      <td className="p-3">{product.category}</td>
-                      <td className="p-3"><Image src={product.imageUrl} alt={product.name} width={64} height={64} className="object-cover rounded" /></td>
-                      <td className="p-3 text-right">
-                        <button onClick={() => { setEditingItem(product); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
-                        <button onClick={() => handleDelete(product.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {(() => {
-              const currentData = activeTab === 'games' ? games : activeTab === 'blogs' ? blogs : products;
-              const paginationData = paginate(currentData, currentPage, itemsPerPage);
-              
-              if (paginationData.totalPages > 1) {
-                return (
-                  <div className="flex justify-center items-center gap-4 mt-6">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={!paginationData.hasPreviousPage}
-                      className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
-                    >
-                      Précédent
-                    </button>
-                    <span className="text-gray-300">
-                      Page {currentPage} sur {paginationData.totalPages}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(paginationData.totalPages, prev + 1))}
-                      disabled={!paginationData.hasNextPage}
-                      className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
-                    >
-                      Suivant
-                    </button>
-                  </div>
-                );
-              }
-              return null;
-            })()}
-          </>
+                      <tr key={game.id} className="border-b border-gray-700 hover:bg-gray-750">
+                        <td className="p-3">{game.id}</td>
+                        <td className="p-3">{game.title}</td>
+                        <td className="p-3">{game.category}</td>
+                        <td className="p-3">
+                          <Image src={game.imageUrl} alt={game.title} width={64} height={64} className="object-cover rounded" />
+                        </td>
+                        <td className="p-3 text-right">
+                          <button onClick={() => { setEditingItem(game); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
+                          <button onClick={() => handleDelete(game.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {activeTab === 'blogs' && paginate(blogs, currentPage, itemsPerPage).items.map((blog) => (
+                      <tr key={blog.id} className="border-b border-gray-700 hover:bg-gray-750">
+                        <td className="p-3">{blog.id}</td>
+                        <td className="p-3">{blog.title}</td>
+                        <td className="p-3">{blog.category}</td>
+                        <td className="p-3">
+                          <Image src={blog.imageUrl} alt={blog.title} width={64} height={64} className="object-cover rounded" />
+                        </td>
+                        <td className="p-3 text-right">
+                          <button onClick={() => { setEditingItem(blog); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
+                          <button onClick={() => handleDelete(blog.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {activeTab === 'products' && paginate(products, currentPage, itemsPerPage).items.map((product) => (
+                      <tr key={product.id} className="border-b border-gray-700 hover:bg-gray-750">
+                        <td className="p-3">{product.id}</td>
+                        <td className="p-3">{product.name}</td>
+                        <td className="p-3">{product.category}</td>
+                        <td className="p-3">
+                          <Image src={product.imageUrl} alt={product.name} width={64} height={64} className="object-cover rounded" />
+                        </td>
+                        <td className="p-3 text-right">
+                          <button onClick={() => { setEditingItem(product); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
+                          <button onClick={() => handleDelete(product.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ✅ Pagination Fix */}
+              {(() => {
+                let paginationData:
+                  | ReturnType<typeof paginate<Game>>
+                  | ReturnType<typeof paginate<BlogPost>>
+                  | ReturnType<typeof paginate<Product>>;
+
+                if (activeTab === 'games') {
+                  paginationData = paginate<Game>(games, currentPage, itemsPerPage);
+                } else if (activeTab === 'blogs') {
+                  paginationData = paginate<BlogPost>(blogs, currentPage, itemsPerPage);
+                } else {
+                  paginationData = paginate<Product>(products, currentPage, itemsPerPage);
+                }
+
+                if (paginationData.totalPages > 1) {
+                  return (
+                    <div className="flex justify-center items-center gap-4 mt-6">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={!paginationData.hasPreviousPage}
+                        className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                      >
+                        Précédent
+                      </button>
+                      <span className="text-gray-300">
+                        Page {currentPage} sur {paginationData.totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(paginationData.totalPages, prev + 1))}
+                        disabled={!paginationData.hasNextPage}
+                        className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
+                      >
+                        Suivant
+                      </button>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </>
           )}
         </div>
       </div>
@@ -363,17 +367,17 @@ function AdminForm({ type, item, onSubmit, onClose }: any) {
     e.preventDefault();
     const finalFormData = { ...formData };
     if (type === 'games') {
-        if (typeof finalFormData.tags === 'string') {
-            finalFormData.tags = finalFormData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-        }
-        if (typeof finalFormData.gallery === 'string') {
-            finalFormData.gallery = finalFormData.gallery.split(',').map(url => url.trim()).filter(Boolean);
-        }
+      if (typeof finalFormData.tags === 'string') {
+        finalFormData.tags = finalFormData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      }
+      if (typeof finalFormData.gallery === 'string') {
+        finalFormData.gallery = finalFormData.gallery.split(',').map(url => url.trim()).filter(Boolean);
+      }
     }
-     if (type === 'products') {
-        if (typeof finalFormData.gallery === 'string') {
-            finalFormData.gallery = finalFormData.gallery.split(',').map(url => url.trim()).filter(Boolean);
-        }
+    if (type === 'products') {
+      if (typeof finalFormData.gallery === 'string') {
+        finalFormData.gallery = finalFormData.gallery.split(',').map(url => url.trim()).filter(Boolean);
+      }
     }
     onSubmit(finalFormData);
   };
@@ -400,30 +404,25 @@ function AdminForm({ type, item, onSubmit, onClose }: any) {
           {type === 'blogs' && (
             <>
               <input name="title" placeholder="Titre" value={formData.title || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <textarea name="summary" placeholder="Résumé" value={formData.summary || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={3} required />
               <input name="imageUrl" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="author" placeholder="Auteur" value={formData.author || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="publishDate" placeholder="Date de publication" value={formData.publishDate || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
               <input name="category" placeholder="Catégorie" value={formData.category || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="rating" type="number" step="0.1" min="0" max="5" placeholder="Note (0-5)" value={formData.rating || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="affiliateUrl" placeholder="URL d'affiliation" value={formData.affiliateUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <textarea name="content" placeholder="Contenu HTML" value={formData.content || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={6} required />
+              <textarea name="content" placeholder="Contenu du blog" value={formData.content || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={6} required />
             </>
           )}
           {type === 'products' && (
             <>
               <input name="name" placeholder="Nom" value={formData.name || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
               <input name="imageUrl" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="price" placeholder="Prix" value={formData.price || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="url" placeholder="URL du produit" value={formData.url || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
               <input name="category" placeholder="Catégorie" value={formData.category || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
               <textarea name="description" placeholder="Description" value={formData.description || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={4} required />
               <textarea name="gallery" placeholder="Gallery URLs (comma-separated)" value={Array.isArray(formData.gallery) ? formData.gallery.join(', ') : formData.gallery || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={2}/>
+              <input name="price" type="number" placeholder="Prix (€)" value={formData.price || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
+              <input name="link" placeholder="Lien du produit" value={formData.link || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
             </>
           )}
-          <div className="flex gap-4 pt-4">
-            <button type="submit" className="flex-1 bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-semibold">Enregistrer</button>
-            <button type="button" onClick={onClose} className="flex-1 bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded font-semibold">Annuler</button>
+          <div className="flex justify-end gap-3">
+            <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Annuler</button>
+            <button type="submit" className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Enregistrer</button>
           </div>
         </form>
       </div>
