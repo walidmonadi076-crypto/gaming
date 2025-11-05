@@ -15,7 +15,7 @@ for (const game of GAMES_DATA) {
   await pool.query(
     `INSERT INTO games (title, image_url, category, tags, theme, description, video_url, download_url, gallery)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-     ON CONFLICT (id) DO NOTHING`,
+     ON CONFLICT DO NOTHING`,
     [
       game.title,
       game.imageUrl,
@@ -28,7 +28,7 @@ for (const game of GAMES_DATA) {
       game.gallery || [],
     ]
   );
-}
+
 console.log(`✅ Inserted ${GAMES_DATA.length} games`);
 
 // 📰 Insert Blogs
