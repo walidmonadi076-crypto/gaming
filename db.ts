@@ -2,7 +2,7 @@ import { Pool } from "pg";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-let pool: Pool | null = null;
+let pool = null;
 
 export function getPool() {
   if (!DATABASE_URL) {
@@ -12,7 +12,7 @@ export function getPool() {
   if (!pool) {
     pool = new Pool({
       connectionString: DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: false },
       max: 5,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
@@ -22,18 +22,18 @@ export function getPool() {
   return pool;
 }
 
-export async function query(text: string, params?: any[]) {
+export async function query(text, params) {
   const pool = getPool();
   const start = Date.now();
   try {
     const res = await pool.query(text, params);
     const duration = Date.now() - start;
     if (duration > 100) {
-      console.log('Slow query detected:', { text, duration, rows: res.rowCount });
+      console.log("Slow query detected:", { text, duration, rows: res.rowCount });
     }
     return res;
   } catch (error) {
-    console.error('Database query error:', error);
+    console.error("Database query error:", error);
     throw error;
   }
 }
@@ -45,7 +45,7 @@ export async function getDbClient() {
 
 export async function testConnection() {
   const pool = getPool();
-  
+
   try {
     const res = await pool.query("SELECT NOW()");
     return res.rows[0];
