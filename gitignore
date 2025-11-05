@@ -1,0 +1,34 @@
+# Node & Next.js build folders
+node_modules
+.next
+out
+dist
+
+# System and local config files
+.local
+.config
+.vercel
+.replit
+replit.md
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs and cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.cache
+
+# Editor and system files
+.DS_Store
+Thumbs.db
+
+# Temporary build artifacts
+*.tmp
+*.log
+*.swp

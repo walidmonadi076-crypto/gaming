@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  The custom font-family and scrollbar styles were removed from this file
+  to resolve a Vercel build error. Fonts are now managed via tailwind.config.ts.
+*/

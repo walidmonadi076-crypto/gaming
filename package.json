@@ -1,0 +1,28 @@
+{
+  "name": "crazy-games-clone-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 5000",
+    "build": "next build",
+    "start": "next start -p 5000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.13",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/pg": "^8.11.6",
+    "postcss": "^8",
+    "autoprefixer": "^10",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
