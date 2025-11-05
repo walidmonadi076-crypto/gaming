@@ -2,9 +2,10 @@ import { Pool } from "pg";
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-let pool = null;
+// التصريح بالنوع Pool أو null
+let pool: Pool | null = null;
 
-export function getPool() {
+export function getPool(): Pool {
   if (!DATABASE_URL) {
     throw new Error("DATABASE_URL environment variable is not set");
   }
@@ -22,7 +23,7 @@ export function getPool() {
   return pool;
 }
 
-export async function query(text, params) {
+export async function query(text: string, params?: any[]) {
   const pool = getPool();
   const start = Date.now();
   try {
