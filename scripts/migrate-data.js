@@ -13,10 +13,11 @@ console.log("🚀 Starting data migration...");
 // 🕹️ Insert Games
 for (const game of GAMES_DATA) {
   await pool.query(
-    `INSERT INTO games (title, image_url, category, tags, theme, description, video_url, download_url, gallery)
+    `INSERT INTO games (id,title, image_url, category, tags, theme, description, video_url, download_url, gallery)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
      ON CONFLICT DO NOTHING`,
     [
+      game.id,
       game.title,
       game.imageUrl,
       game.category,
