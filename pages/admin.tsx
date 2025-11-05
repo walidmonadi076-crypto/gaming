@@ -20,6 +20,7 @@ export default function AdminPanel() {
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  const [searchQuery, setSearchQuery] = useState(''); // ✅ جديد: البحث
 
   useEffect(() => {
     checkAuth();
@@ -29,6 +30,7 @@ export default function AdminPanel() {
     if (isAuthenticated) {
       fetchData();
       setCurrentPage(1);
+      setSearchQuery('');
     }
   }, [activeTab, isAuthenticated]);
 
@@ -180,6 +182,24 @@ export default function AdminPanel() {
     );
   }
 
+  // ✅ filter dynamique avant pagination
+  const currentData =
+    activeTab === 'games' ? games :
+    activeTab === 'blogs' ? blogs :
+    products;
+
+  const filteredData = currentData.filter((item: any) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      (item.title && item.title.toLowerCase().includes(query)) ||
+      (item.name && item.name.toLowerCase().includes(query)) ||
+      (item.category && item.category.toLowerCase().includes(query)) ||
+      (item.author && item.author.toLowerCase().includes(query))
+    );
+  });
+
+  const paginationData = paginate(filteredData, currentPage, itemsPerPage);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Head>
@@ -202,30 +222,30 @@ export default function AdminPanel() {
         <AdminDashboard games={games} blogs={blogs} products={products} />
 
         <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setActiveTab('games')}
-            className={`px-6 py-3 rounded-lg font-semibold ${
-              activeTab === 'games' ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
-            }`}
-          >
-            Jeux ({games.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('blogs')}
-            className={`px-6 py-3 rounded-lg font-semibold ${
-              activeTab === 'blogs' ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
-            }`}
-          >
-            Blogs ({blogs.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('products')}
-            className={`px-6 py-3 rounded-lg font-semibold ${
-              activeTab === 'products' ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
-            }`}
-          >
-            Produits ({products.length})
-          </button>
+          {['games', 'blogs', 'products'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={`px-6 py-3 rounded-lg font-semibold capitalize ${
+                activeTab === tab ? 'bg-purple-600' : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              {tab === 'games' ? `Jeux (${games.length})` :
+               tab === 'blogs' ? `Blogs (${blogs.length})` :
+               `Produits (${products.length})`}
+            </button>
+          ))}
+        </div>
+
+        {/* ✅ champ recherche */}
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="text"
+            placeholder={`Rechercher dans ${activeTab}...`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-4 py-2 bg-gray-700 rounded w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-purple-600"
+          />
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
@@ -245,45 +265,23 @@ export default function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activeTab === 'games' && paginate(games, currentPage, itemsPerPage).items.map((game) => (
-                      <tr key={game.id} className="border-b border-gray-700 hover:bg-gray-750">
-                        <td className="p-3">{game.id}</td>
-                        <td className="p-3">{game.title}</td>
-                        <td className="p-3">{game.category}</td>
+                    {paginationData.items.map((item: any) => (
+                      <tr key={item.id} className="border-b border-gray-700 hover:bg-gray-750">
+                        <td className="p-3">{item.id}</td>
+                        <td className="p-3">{item.title || item.name}</td>
+                        <td className="p-3">{item.category}</td>
                         <td className="p-3">
-                          <Image src={game.imageUrl} alt={game.title} width={64} height={64} className="object-cover rounded" />
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.title || item.name}
+                            width={64}
+                            height={64}
+                            className="object-cover rounded"
+                          />
                         </td>
                         <td className="p-3 text-right">
-                          <button onClick={() => { setEditingItem(game); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
-                          <button onClick={() => handleDelete(game.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {activeTab === 'blogs' && paginate(blogs, currentPage, itemsPerPage).items.map((blog) => (
-                      <tr key={blog.id} className="border-b border-gray-700 hover:bg-gray-750">
-                        <td className="p-3">{blog.id}</td>
-                        <td className="p-3">{blog.title}</td>
-                        <td className="p-3">{blog.category}</td>
-                        <td className="p-3">
-                          <Image src={blog.imageUrl} alt={blog.title} width={64} height={64} className="object-cover rounded" />
-                        </td>
-                        <td className="p-3 text-right">
-                          <button onClick={() => { setEditingItem(blog); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
-                          <button onClick={() => handleDelete(blog.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
-                        </td>
-                      </tr>
-                    ))}
-                    {activeTab === 'products' && paginate(products, currentPage, itemsPerPage).items.map((product) => (
-                      <tr key={product.id} className="border-b border-gray-700 hover:bg-gray-750">
-                        <td className="p-3">{product.id}</td>
-                        <td className="p-3">{product.name}</td>
-                        <td className="p-3">{product.category}</td>
-                        <td className="p-3">
-                          <Image src={product.imageUrl} alt={product.name} width={64} height={64} className="object-cover rounded" />
-                        </td>
-                        <td className="p-3 text-right">
-                          <button onClick={() => { setEditingItem(product); setShowForm(true);}} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
-                          <button onClick={() => handleDelete(product.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
+                          <button onClick={() => { setEditingItem(item); setShowForm(true); }} className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded mr-2">Modifier</button>
+                          <button onClick={() => handleDelete(item.id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">Supprimer</button>
                         </td>
                       </tr>
                     ))}
@@ -291,140 +289,31 @@ export default function AdminPanel() {
                 </table>
               </div>
 
-              {/* ✅ Pagination Fix */}
-              {(() => {
-                let paginationData:
-                  | ReturnType<typeof paginate<Game>>
-                  | ReturnType<typeof paginate<BlogPost>>
-                  | ReturnType<typeof paginate<Product>>;
-
-                if (activeTab === 'games') {
-                  paginationData = paginate<Game>(games, currentPage, itemsPerPage);
-                } else if (activeTab === 'blogs') {
-                  paginationData = paginate<BlogPost>(blogs, currentPage, itemsPerPage);
-                } else {
-                  paginationData = paginate<Product>(products, currentPage, itemsPerPage);
-                }
-
-                if (paginationData.totalPages > 1) {
-                  return (
-                    <div className="flex justify-center items-center gap-4 mt-6">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                        disabled={!paginationData.hasPreviousPage}
-                        className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
-                      >
-                        Précédent
-                      </button>
-                      <span className="text-gray-300">
-                        Page {currentPage} sur {paginationData.totalPages}
-                      </span>
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(paginationData.totalPages, prev + 1))}
-                        disabled={!paginationData.hasNextPage}
-                        className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600"
-                      >
-                        Suivant
-                      </button>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
+              {/* pagination */}
+              {paginationData.totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-6">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={!paginationData.hasPreviousPage}
+                    className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 hover:bg-gray-600"
+                  >
+                    Précédent
+                  </button>
+                  <span className="text-gray-300">
+                    Page {currentPage} sur {paginationData.totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(paginationData.totalPages, prev + 1))}
+                    disabled={!paginationData.hasNextPage}
+                    className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50 hover:bg-gray-600"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
-      </div>
-
-      {showForm && (
-        <AdminForm
-          type={activeTab}
-          item={editingItem}
-          onSubmit={handleSubmit}
-          onClose={() => {
-            setShowForm(false);
-            setEditingItem(null);
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-function AdminForm({ type, item, onSubmit, onClose }: any) {
-  const [formData, setFormData] = useState(item || {});
-
-  useEffect(() => {
-    setFormData(item || {});
-  }, [item]);
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmitForm = (e: any) => {
-    e.preventDefault();
-    const finalFormData = { ...formData };
-    if (type === 'games') {
-      if (typeof finalFormData.tags === 'string') {
-        finalFormData.tags = finalFormData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-      }
-      if (typeof finalFormData.gallery === 'string') {
-        finalFormData.gallery = finalFormData.gallery.split(',').map(url => url.trim()).filter(Boolean);
-      }
-    }
-    if (type === 'products') {
-      if (typeof finalFormData.gallery === 'string') {
-        finalFormData.gallery = finalFormData.gallery.split(',').map(url => url.trim()).filter(Boolean);
-      }
-    }
-    onSubmit(finalFormData);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">
-          {item ? 'Modifier' : 'Ajouter'} {type === 'games' ? 'un jeu' : type === 'blogs' ? 'un blog' : 'un produit'}
-        </h2>
-        <form onSubmit={handleSubmitForm} className="space-y-4">
-          {type === 'games' && (
-            <>
-              <input name="title" placeholder="Titre" value={formData.title || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="imageUrl" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="category" placeholder="Catégorie" value={formData.category || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <textarea name="description" placeholder="Description" value={formData.description || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={4} required />
-              <input name="tags" placeholder="Tags (comma-separated)" value={Array.isArray(formData.tags) ? formData.tags.join(', ') : formData.tags || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" />
-              <textarea name="gallery" placeholder="Gallery URLs (comma-separated)" value={Array.isArray(formData.gallery) ? formData.gallery.join(', ') : formData.gallery || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={2}/>
-              <input name="downloadUrl" placeholder="URL de téléchargement" value={formData.downloadUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="videoUrl" placeholder="URL de la vidéo (optionnel)" value={formData.videoUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" />
-            </>
-          )}
-          {type === 'blogs' && (
-            <>
-              <input name="title" placeholder="Titre" value={formData.title || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="imageUrl" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="category" placeholder="Catégorie" value={formData.category || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <textarea name="content" placeholder="Contenu du blog" value={formData.content || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={6} required />
-            </>
-          )}
-          {type === 'products' && (
-            <>
-              <input name="name" placeholder="Nom" value={formData.name || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="imageUrl" placeholder="URL de l'image" value={formData.imageUrl || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="category" placeholder="Catégorie" value={formData.category || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <textarea name="description" placeholder="Description" value={formData.description || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={4} required />
-              <textarea name="gallery" placeholder="Gallery URLs (comma-separated)" value={Array.isArray(formData.gallery) ? formData.gallery.join(', ') : formData.gallery || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" rows={2}/>
-              <input name="price" type="number" placeholder="Prix (€)" value={formData.price || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-              <input name="link" placeholder="Lien du produit" value={formData.link || ''} onChange={handleChange} className="w-full px-4 py-2 bg-gray-700 rounded" required />
-            </>
-          )}
-          <div className="flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">Annuler</button>
-            <button type="submit" className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Enregistrer</button>
-          </div>
-        </form>
       </div>
     </div>
   );
