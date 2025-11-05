@@ -55,8 +55,19 @@ export default function AdminDashboard({ games, blogs, products }: AdminDashboar
   );
 }
 
-function StatCard({ title, value, subtitle, icon, color }: any) {
-  const colorClasses = {
+// ✅ هنا زدت type واضح للـ color
+type ColorType = 'purple' | 'blue' | 'green';
+
+interface StatCardProps {
+  title: string;
+  value: number;
+  subtitle: string;
+  icon: string;
+  color: ColorType;
+}
+
+function StatCard({ title, value, subtitle, icon, color }: StatCardProps) {
+  const colorClasses: Record<ColorType, string> = {
     purple: 'from-purple-600 to-purple-800',
     blue: 'from-blue-600 to-blue-800',
     green: 'from-green-600 to-green-800',
